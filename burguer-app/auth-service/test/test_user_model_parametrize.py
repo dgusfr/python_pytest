@@ -12,13 +12,13 @@ from models.user_model import serialize_user
         (
             {
                 "email": "test@example.com",
-                "username": "testuser",
+                "name": "testuser",
                 "address": "123 Main St",
                 "role": "admin",
             },
             {
                 "email": "test@example.com",
-                "username": "testuser",
+                "name": "testuser",
                 "address": "123 Main St",
                 "role": "admin",
             },
@@ -29,7 +29,7 @@ from models.user_model import serialize_user
             },
             {
                 "email": "teste@example.com",
-                "username": "",
+                "name": "",
                 "address": "",
                 "role": "cliente",
             },
@@ -40,25 +40,25 @@ from models.user_model import serialize_user
             # default output
             {
                 "email": None,
-                "username": "",
+                "name": "",
                 "address": "",
                 "role": "cliente",
             },
         ),
         (
-            {"email": None, "username": None, "address": None, "role": None},
-            {"email": None, "username": None, "address": None, "role": None},
+            {"email": None, "name": None, "address": None, "role": None},
+            {"email": None, "name": None, "address": None, "role": None},
         ),
         (
             {
                 "email": 123,
-                "username": ["list", "of", "names"],
+                "name": ["list", "of", "names"],
                 "address": {"street": "123 Main St"},
                 "role": True,
             },
             {
                 "email": 123,
-                "username": ["list", "of", "names"],
+                "name": ["list", "of", "names"],
                 "address": {"street": "123 Main St"},
                 "role": True,
             },
@@ -67,3 +67,12 @@ from models.user_model import serialize_user
 )
 def test_serialize_user(input_user, expected_output):
     assert serialize_user(input_user) == expected_output
+
+
+# Validate that invalid types raise AttributeError
+@pytest.mark.parametrize(
+    "invalid_input", ["this is not a dict", 12345, ["list", "of", "values"], None]
+)
+def test_serialize_user_invalid_type(invalid_input):
+    with pytest.raises(AttributeError):
+        serialize_user(invalid_input)
