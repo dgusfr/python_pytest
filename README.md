@@ -1,7 +1,5 @@
 # python-testes
 
-
-
 Execução de testes unitario e de cobertura com arquivo pytest.ini:
 
 pytest --cov=models.user_model
