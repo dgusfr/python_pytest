@@ -1,20 +1,23 @@
-# Conecta ao  banco de dados MongoDB utilizando as variáveis de ambiente
+"""
+Docstring for burguer-app.auth-service.config.database
+"""
 
-from pymongo import MongoClient
 import os
+from pymongo import MongoClient
 from dotenv import load_dotenv
-
-# Carrega as variáveis de ambiente do arquivo .env
 
 load_dotenv()
 
-#Cria a conexão com o banco de dados MongoDB
-
 client = MongoClient(os.getenv("MONGO_URI"))
-
-# Seleciona o banco de dados
 db = client["burguer_app_db"]
 
-# função para retornar a instância do banco de dados
+
+"""
+Function to get the database connection.
+Args:       None
+Returns:    Database connection object
+db: Database connection object """
+
+
 def get_db():
     return db
