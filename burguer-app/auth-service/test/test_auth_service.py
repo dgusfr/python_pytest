@@ -6,12 +6,14 @@ from services.auth_service import login_user, users_col
 
 def test_login_user_success(mongo_db):
     users_col.delete_many({})
-    users_col.insert_one({
-        "email": "user@example.com",
-        "password": generate_password_hash("secret"),
-        "name": "Test User",
-        "role": "cliente",
-    })
+    users_col.insert_one(
+        {
+            "email": "user@example.com",
+            "password": generate_password_hash("secret"),
+            "name": "Test User",
+            "role": "cliente",
+        }
+    )
 
     res = login_user("user@example.com", "secret")
     assert isinstance(res, dict)
@@ -21,10 +23,12 @@ def test_login_user_success(mongo_db):
 
 def test_login_user_failure_wrong_password(mongo_db):
     users_col.delete_many({})
-    users_col.insert_one({
-        "email": "user@example.com",
-        "password": generate_password_hash("secret"),
-    })
+    users_col.insert_one(
+        {
+            "email": "user@example.com",
+            "password": generate_password_hash("secret"),
+        }
+    )
 
     assert login_user("user@example.com", "bad") is None
 
