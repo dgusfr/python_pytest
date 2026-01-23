@@ -25,6 +25,7 @@ Pygments==2.19.2
 PyJWT==2.10.1
 pylint==4.0.4
 pymongo==4.13.2
+mongomock==4.1.2
 pytest==8.4.1
 pytest-cov==6.2.1
 python-dotenv==1.1.1
