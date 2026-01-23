@@ -12,3 +12,12 @@ def mongo_client():
     client = MongoClient(mongo_uri)
     yield client
     client.close()
+
+
+@pytest.fixture(scope="function")
+def mongo_db(mongo_client):
+    db = mongo_client["test_db"]
+    db["users"].delete_many({})
+    db["pedidos"].delete_many({})
+    yield db
+    mongo_client.drop_database("test_db")
