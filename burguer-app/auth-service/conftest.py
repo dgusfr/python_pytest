@@ -15,6 +15,9 @@ except Exception:  # pragma: no cover - fallback when package missing
 
 load_dotenv()
 
+# Ensure tests default to the in-memory DB unless explicitly overridden
+os.environ.setdefault("USE_MOCK_DB", "1")
+
 
 @pytest.fixture(scope="session")
 def mongo_client():
