@@ -28,10 +28,11 @@ def mongo_client():
     if _HAS_MONGOMOCK and not use_real:
         client = mongomock.MongoClient()  # type: ignore[attr-defined]
     else:
-        # Fall back to a real client (requires local MongoDB or valid URI)
+        # Fall back to a real client (requires local MongoDB)
+        # Intentionally ignore MONGO_URI to avoid remote connections in tests.
         from pymongo import MongoClient  # local import to avoid import at module load
 
-        mongo_uri = os.getenv("MONGO_URI", "mongodb://localhost:27017")
+        mongo_uri = os.getenv("TEST_MONGO_URI", "mongodb://localhost:27017")
         client = MongoClient(mongo_uri)
 
     try:

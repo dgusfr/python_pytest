@@ -1,23 +1,38 @@
 """
-Docstring for burguer-app.auth-service.config.database
+Database connection factory with test-friendly behavior.
+
+In tests, when the environment variable USE_MOCK_DB=1 is set (default via
+conftest), an in-memory mongomock client is used to avoid external
+connections. In all other cases, a real MongoDB client is created using
+MONGO_URI (or localhost by default).
 """
 
 import os
-from pymongo import MongoClient
 from dotenv import load_dotenv
 
 load_dotenv()
 
-client = MongoClient(os.getenv("MONGO_URI"))
-db = client["burguer_app_db"]
+_USE_MOCK = os.getenv("USE_MOCK_DB") == "1" or bool(os.getenv("PYTEST_CURRENT_TEST"))
 
+_db = None
 
-"""
-Function to get the database connection.
-Args:       None
-Returns:    Database connection object
-db: Database connection object """
+if _USE_MOCK:
+    try:
+        import mongomock  # type: ignore
+
+        _client = mongomock.MongoClient()
+        _db = _client["burguer_app_db"]
+    except Exception:
+        _USE_MOCK = False
+
+if not _USE_MOCK:
+    from pymongo import MongoClient  # type: ignore
+
+    mongo_uri = os.getenv("MONGO_URI", "mongodb://localhost:27017")
+    _client = MongoClient(mongo_uri)
+    _db = _client["burguer_app_db"]
 
 
 def get_db():
-    return db
+    """Return the database handle for the application."""
+    return _db
