@@ -38,5 +38,11 @@ def sample_itens():
 @pytest.fixture
 def mock_user_service():
     with patch(requests.get) as mock_get:
-        mock_resoponse = Mock()
+        mock_resoponse = mock.Mock()
         mock_resoponse.status_code = 200
+        mock_resoponse.json.return_value = {
+            "username": "testuser",
+            "name": "Test User",
+            "address": "123 Test St",
+            "role": "customer",
+        }
