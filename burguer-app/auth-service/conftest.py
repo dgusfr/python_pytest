@@ -2,7 +2,8 @@ import os
 import sys
 import pytest
 import requests
-import unittest.mock as mock, patch
+import unittest.mock as mock
+from unittest.mock import patch
 from pymongo import MongoClient
 from dotenv import load_dotenv
 
@@ -46,3 +47,4 @@ def mock_user_service():
             "address": "123 Test St",
             "role": "customer",
         }
+    yield mock_get
