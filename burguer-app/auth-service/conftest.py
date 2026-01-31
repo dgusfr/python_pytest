@@ -1,5 +1,9 @@
 import os
+import sys
 import pytest
+import requests
+import unittest.mock as mock, patch
+from pymongo import MongoClient
 from dotenv import load_dotenv
 
 # Prefer an in-memory MongoDB for tests to avoid network calls
