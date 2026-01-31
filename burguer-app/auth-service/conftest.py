@@ -39,9 +39,10 @@ def sample_itens():
 @pytest.fixture
 def mock_user_service():
     with patch(requests.get) as mock_get:
-        mock_resoponse = mock.Mock()
-        mock_resoponse.status_code = 200
-        mock_resoponse.json.return_value = {
+        mock_response = mock.Mock()
+        mock_response.status_code = 302
+        mock_response.headers = {"Location": "http://user-service:8001/user/testuser"}
+        mock_response.json.return_value = {
             "username": "testuser",
             "name": "Test User",
             "address": "123 Test St",
