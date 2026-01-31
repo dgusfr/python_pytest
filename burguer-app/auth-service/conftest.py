@@ -33,3 +33,9 @@ def sample_itens():
         "item_name": "Test Burger",
         "item_description": "A delicious test burger",
     }
+
+
+@pytest.fixture
+def mock_user_service():
+    with patch(requests.get) as mock_requests:
+        yield mock_requests
