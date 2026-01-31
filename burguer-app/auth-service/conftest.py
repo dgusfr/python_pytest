@@ -6,14 +6,13 @@ import unittest.mock as mock, patch
 from pymongo import MongoClient
 from dotenv import load_dotenv
 
-# Prefer an in-memory MongoDB for tests to avoid network calls
-mongomock = None  # type: ignore
+mongomock = None
 try:
-    import mongomock as _mongomock  # type: ignore
+    import mongomock as _mongomock
 
     mongomock = _mongomock
     _HAS_MONGOMOCK = True
-except Exception:  # pragma: no cover - fallback when package missing
+except Exception:
     _HAS_MONGOMOCK = False
     from pymongo import MongoClient  # type: ignore
 
@@ -25,11 +24,6 @@ os.environ.setdefault("USE_MOCK_DB", "1")
 
 @pytest.fixture(scope="session")
 def mongo_client():
-    """Provide a Mongo client for tests.
-
-    Defaults to an in-memory mongomock client when available, unless
-    USE_REAL_MONGO=1 is set in the environment.
-    """
     use_real = os.getenv("USE_REAL_MONGO") == "1"
 
     if _HAS_MONGOMOCK and not use_real:
