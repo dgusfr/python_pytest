@@ -4,8 +4,24 @@ import pytest
 import requests
 import unittest.mock as mock
 from unittest.mock import patch
-from pymongo import MongoClient
 from dotenv import load_dotenv
+
+# Forçar uso de mongomock para testes
+os.environ["USE_MOCK_DB"] = "1"
+
+# Importar após definir variáveis de ambiente
+from config.database import get_db
+
+
+@pytest.fixture
+def mongo_db():
+    """Fixture que fornece instância de banco mockado para testes."""
+    db = get_db()
+    yield db
+    # Limpar dados após cada teste
+    db.drop_collection("users")
+    db.drop_collection("orders")
+    db.drop_collection("products")
 
 
 @pytest.fixture
