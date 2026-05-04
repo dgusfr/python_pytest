@@ -45,3 +45,30 @@ def test_serialize_unexpected_user():
         "role": "cliente"
     }
     assert result == expected
+
+
+def test_serialize_user_list():
+    # quando uma lista é passada em vez de um dicionário
+    with pytest.raises(AttributeError):
+        serialize_user([{"email": "a@b.com"}])
+
+
+def test_serialize_user_none():
+    # quando None é passado como argumento
+    with pytest.raises(AttributeError):
+        serialize_user(None)
+
+
+def test_serialize_user_null_values():
+    # dicionário com valores nulos deve preservar os nulos
+    null_user = {"email": None, "name": None, "address": None, "role": None}
+    result = serialize_user(null_user)
+
+    expected = {
+        "email": None,
+        "name": None,
+        "address": None,
+        "role": None,
+    }
+    assert result == expected
+
