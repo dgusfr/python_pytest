@@ -13,6 +13,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 _USE_MOCK = os.getenv("USE_MOCK_DB") == "1" or bool(os.getenv("PYTEST_CURRENT_TEST"))
+_MONGO_DB_NAME = os.getenv("MONGO_DB_NAME", "burguer_app_db")
 
 _db = None
 
@@ -21,7 +22,7 @@ if _USE_MOCK:
         import mongomock  # type: ignore
 
         _client = mongomock.MongoClient()
-        _db = _client["burguer_app_db"]
+        _db = _client[_MONGO_DB_NAME]
     except Exception:
         _USE_MOCK = False
 
@@ -29,8 +30,8 @@ if not _USE_MOCK:
     from pymongo import MongoClient  # type: ignore
 
     mongo_uri = os.getenv("MONGO_URI", "mongodb://localhost:27017")
-    _client = MongoClient(mongo_uri)
-    _db = _client["burguer_app_db"]
+    _client = MongoClient(mongo_uri, serverSelectionTimeoutMS=5000)
+    _db = _client[_MONGO_DB_NAME]
 
 
 def get_db():
