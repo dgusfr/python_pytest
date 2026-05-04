@@ -1,8 +1,6 @@
 services:
   mongodb:
-    build:
-      context: .
-      dockerfile: docker/mongodb/Dockerfile
+    image: mongo:7.0
     container_name: burguer-mongodb
     ports:
       - "27017:27017"

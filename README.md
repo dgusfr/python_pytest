@@ -114,37 +114,62 @@ docker compose down -v
 
 ## Como rodar local com uv
 
-1. Suba o MongoDB com Docker.
+### Opção 1: Fluxo manual (maior controle)
+
+1. Suba o MongoDB com Docker:
+
+```bash
+docker compose up -d mongodb
+```
+
 2. Na raiz do projeto, sincronize o workspace:
 
 ```bash
 uv sync
 ```
 
-3. Suba cada servico em um terminal separado.
-
-### Terminal 1 - auth-service (porta 5000)
+3. Suba cada serviço em um terminal separado:
 
 ```bash
+# Terminal 1 - auth-service (porta 5000)
 uv run --package auth-service python burguer-app/auth-service/app.py
-```
 
-### Terminal 2 - user-service (porta 5001)
-
-```bash
+# Terminal 2 - user-service (porta 5001)
 uv run --package user-service python burguer-app/user-service/app.py
-```
 
-### Terminal 3 - order-service (porta 5002)
-
-```bash
+# Terminal 3 - order-service (porta 5002)
 uv run --package order-service python burguer-app/order-service/app.py
+
+# Terminal 4 - product-service (porta 5003)
+uv run --package product-service python burguer-app/product-service/app.py
 ```
 
-### Terminal 4 - product-service (porta 5003)
+### Opção 2: Fluxo com Makefile
 
 ```bash
-uv run --package product-service python burguer-app/product-service/app.py
+# Visualizar todos os comandos disponíveis
+make help
+
+# Setup inicial de variáveis de ambiente
+make env-setup
+
+# Subir MongoDB
+make docker-up
+
+# Sincronizar dependências
+make install
+
+# Iniciar cada serviço em um terminal (em paralelo)
+make serve-auth
+make serve-user
+make serve-order
+make serve-product
+
+# Parar MongoDB
+make docker-down
+
+# Rodar testes
+make test
 ```
 
 ## URLs locais
