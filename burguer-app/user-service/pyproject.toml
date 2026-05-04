@@ -1,0 +1,12 @@
+[project]
+name = "user-service"
+version = "0.1.0"
+description = "User Service"
+requires-python = ">=3.13"
+dependencies = [
+    "Flask>=3.1.1",
+    "pymongo>=4.13.2",
+    "python-dotenv>=1.1.1",
+    "requests>=2.32.4",
+    "Werkzeug>=3.1.3",
+]

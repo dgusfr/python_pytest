@@ -1,3 +1,11 @@
+[tool.uv.workspace]
+members = [
+    "burguer-app/auth-service",
+    "burguer-app/order-service",
+    "burguer-app/product-service",
+    "burguer-app/user-service",
+]
+
 [project]
 name = "python-pytest"
 version = "0.1.0"
