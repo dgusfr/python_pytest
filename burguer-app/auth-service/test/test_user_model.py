@@ -24,8 +24,8 @@ def test_serialize_incomplete_user():
     assert result == expected
 
 def test_serialize_user_integer():
-    # O with é usado para alertar que o próximo comando deve lançar um erro do tipo TypeError
-    with pytest.raises(TypeError):
+    # quando um inteiro é passado deve gerar AttributeError
+    with pytest.raises(AttributeError):
         serialize_user(123456789)
 
 def test_serialize_user_string():
