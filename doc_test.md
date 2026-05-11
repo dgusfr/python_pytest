@@ -2,18 +2,38 @@
 
 **Documento de Referência para Implementação de Testes Unitários, de Integração e de Cobertura**
 
+**Gerenciador de Pacotes**: Este projeto usa [uv](https://docs.astral.sh/uv/) em vez de pip/requirements.txt
+
 ---
 
 ## Índice
-1. [Fundamentação Teórica](#fundamentação-teórica)
-2. [Pytest - Framework Principal](#pytest---framework-principal)
-3. [Cobertura de Testes](#cobertura-de-testes)
-4. [Configuração Centralizada](#configuração-centralizada)
-5. [Análise Estática com Pylint](#análise-estática-com-pylint)
-6. [Mocks e Simulações](#mocks-e-simulações)
-7. [Testes Parametrizados](#testes-parametrizados)
-8. [Fixtures e conftest.py](#fixtures-e-conftestpy)
-9. [Testes de Integração](#testes-de-integração)
+1. [UV vs PIP - Referência Rápida](#uv-vs-pip---referência-rápida)
+2. [Fundamentação Teórica](#fundamentação-teórica)
+3. [Pytest - Framework Principal](#pytest---framework-principal)
+4. [Cobertura de Testes](#cobertura-de-testes)
+5. [Configuração Centralizada](#configuração-centralizada)
+6. [Análise Estática com Pylint](#análise-estática-com-pylint)
+7. [Mocks e Simulações](#mocks-e-simulações)
+8. [Testes Parametrizados](#testes-parametrizados)
+9. [Fixtures e conftest.py](#fixtures-e-conftestpy)
+10. [Testes de Integração](#testes-de-integração)
+
+---
+
+## UV vs PIP - Referência Rápida
+
+| Tarefa | PIP | UV |
+|--------|-----|-----|
+| Instalar dependências | `pip install -r requirements.txt` | `uv sync` |
+| Adicionar pacote | `pip install pacote` | `uv add pacote` |
+| Adicionar dev | `pip install --save-dev pacote` | `uv add --dev pacote` |
+| Lock file | Não automático | `uv.lock` (automático) |
+| Workspace | Não suporta | ✅ Suporta nativamente |
+| Velocidade | Mais lento | ⚡ Muito mais rápido |
+| Configuração | `requirements.txt` | `pyproject.toml` |
+| Python versão | Manual | Gerenciado automaticamente |
+
+**Este projeto usa UV** - todos os comandos que você verá usam `uv` em vez de `pip`.
 
 ---
 
@@ -74,12 +94,19 @@ Pytest é um framework de testes em Python que:
 ### Instalação
 
 ```bash
-# Instalação básica
-pip install pytest
+# Sincronizar todas as dependências do projeto com uv
+# (instala pytest e todas as dependências especificadas em pyproject.toml)
+uv sync
 
-# Com todas as dependências do projeto
-pip install -r requirements.txt
+# Se precisar instalar uma dependência adicional
+uv add pytest-novo-plugin
+
+# Para um workspace específico (ex: auth-service)
+cd burguer-app/auth-service
+uv sync
 ```
+
+**Nota sobre UV**: O projeto usa [uv](https://docs.astral.sh/uv/) como package manager. Todos os testes têm suas dependências definidas em `pyproject.toml` (não em `requirements.txt`).
 
 ### Estrutura Básica de um Teste
 
@@ -152,23 +179,79 @@ def test_serialize_user_completo():
 ### Executando Testes
 
 ```bash
-# Executar todos os testes no projeto
-pytest
+# Executar todos os testes no projeto (workspace atual)
+uv run pytest
+
+# Executar testes de um serviço específico
+uv run -p auth-service pytest
 
 # Executar arquivo específico
-pytest test_user_model.py
+uv run pytest test_user_model.py
 
 # Executar função de teste específica
-pytest test_user_model.py::test_serialize_user_completo
+uv run pytest test_user_model.py::test_serialize_user_completo
 
 # Modo verbose (mostra detalhes)
-pytest -v
+uv run pytest -v
 
 # Parar no primeiro erro
-pytest -x
+uv run pytest -x
 
 # Mostrar prints durante execução
-pytest -s
+uv run pytest -s
+```
+
+### Trabalhando com UV Workspace
+
+Este projeto é estruturado como um **uv workspace** com múltiplos serviços. Cada serviço tem suas próprias dependências em `pyproject.toml`.
+
+#### Navegando entre Serviços
+
+```bash
+# Sincronizar todas as dependências (da raiz do projeto)
+cd c:\Projetos\python_pytest
+uv sync
+
+# Entrar em um serviço específico
+cd burguer-app/auth-service
+
+# Sincronizar dependências do serviço (já sincronizado pela raiz)
+uv sync
+```
+
+#### Executando Testes em um Serviço
+
+```bash
+# Opção 1: A partir da raiz, especificar o serviço
+cd c:\Projetos\python_pytest
+uv run -p auth-service pytest -v
+
+# Opção 2: Dentro do diretório do serviço
+cd burguer-app/auth-service
+uv run pytest -v
+```
+
+#### Adicionando Dependências
+
+```bash
+# A partir da raiz do workspace
+uv add pytest-novo-plugin          # Adiciona a todos os serviços
+uv add -p auth-service pylint      # Adiciona apenas ao auth-service
+uv add --dev flask-cors            # Adiciona como dev dependency
+
+# Sincronizar após adicionar
+uv sync
+
+# Atualizar lock file
+uv lock
+```
+
+#### Estrutura do uv.lock
+
+O arquivo `uv.lock` na raiz contém todas as dependências resolvidas dos serviços. **Não edite manualmente**; deixe que o uv gerencie:
+
+```bash
+uv lock      # Regenera o lock file
 ```
 
 ---
@@ -188,8 +271,13 @@ Cobertura de testes é uma métrica que avalia a proporção do código-fonte ex
 
 ### Instalação do pytest-cov
 
+O pytest-cov já está incluído nas dependências do projeto definidas em `pyproject.toml`.
+
 ```bash
-pip install pytest-cov
+# Sincronizar dependências (se não feito ainda)
+uv sync
+
+# Pronto para usar!
 ```
 
 ### Executando Testes com Cobertura
@@ -319,34 +407,185 @@ pytest
 pytest -v --cov-fail-under=90
 ```
 
-### Estrutura Recomendada do Projeto
+### Estrutura Recomendada do Projeto com UV Workspace
+
+Este projeto utiliza **uv workspace** para gerenciar múltiplos serviços:
 
 ```
-seu_projeto/
-├── models/
-│   ├── __init__.py
-│   └── user_model.py
-├── controllers/
-│   ├── __init__.py
-│   └── user_controller.py
-├── services/
-│   ├── __init__.py
-│   └── user_service.py
-├── config/
-│   ├── __init__.py
-│   └── database.py
-├── test/
-│   ├── test_user_model.py
-│   ├── test_user_controller.py
-│   └── test_user_service.py
-├── pytest.ini          # Configuração centralizada
-├── pyproject.toml      # Configurações do projeto
-└── requirements.txt    # Dependências
+python_pytest/
+├── burguer-app/                    # Workspace root
+│   ├── auth-service/              # Serviço de autenticação
+│   │   ├── __init__.py
+│   │   ├── app.py
+│   │   ├── pyproject.toml          # Dependências do serviço
+│   │   ├── pytest.ini              # Config de testes
+│   │   ├── config/
+│   │   ├── controllers/
+│   │   ├── models/
+│   │   ├── services/
+│   │   └── test/                   # Testes do serviço
+│   │       ├── conftest.py
+│   │       ├── test_user_model.py
+│   │       └── test_auth_service.py
+│   ├── order-service/              # Serviço de pedidos
+│   ├── product-service/            # Serviço de produtos
+│   └── user-service/               # Serviço de usuários
+├── docker/                         # Configurações Docker
+├── pyproject.toml                  # Configuração workspace (raiz)
+├── uv.lock                         # Lock file (mantém versões consistentes)
+├── pytest.ini                      # Config pytest global (opcional)
+├── docker-compose.yml              # Orquestração de containers
+└── Makefile                        # Comandos úteis
+```
+
+#### pyproject.toml (Raiz - Workspace)
+
+```toml
+[tool.uv.workspace]
+members = [
+    "burguer-app/auth-service",
+    "burguer-app/order-service",
+    "burguer-app/product-service",
+    "burguer-app/user-service",
+]
+
+[project]
+name = "python-pytest"
+version = "0.1.0"
+description = "Burger App com Testes"
+requires-python = ">=3.13"
+```
+
+#### pyproject.toml (Serviço Individual)
+
+```toml
+[project]
+name = "auth-service"
+version = "0.1.0"
+description = "Authentication Service"
+requires-python = ">=3.13"
+dependencies = [
+    "Flask>=3.1.1",
+    "pymongo>=4.13.2",
+    "PyJWT>=2.10.1",
+    "python-dotenv>=1.1.1",
+    "pytest>=8.4.1",
+    "pytest-cov>=6.2.1",
+]
 ```
 
 ---
 
-## Análise Estática com Pylint
+## UV Workspace - Gerenciamento de Múltiplos Serviços
+
+### O que é um UV Workspace?
+
+Um workspace do UV permite gerenciar múltiplos projetos Python como uma unidade coerente, compartilhando configurações e dependências de forma eficiente.
+
+**Benefícios**:
+- ✅ Gerencia múltiplos serviços com uma única configuração
+- ✅ Compartilha resolver de dependências entre projetos
+- ✅ Sincronização centralizada com `uv sync`
+- ✅ Lock file único (`uv.lock`) mantém consistência
+- ✅ Testes abrangem todos os serviços
+- ✅ Mais rápido que gerenciar requirements.txt separados
+
+### Configuração do Workspace
+
+A raiz do projeto contém:
+
+```toml
+# pyproject.toml (raiz)
+[tool.uv.workspace]
+members = [
+    "burguer-app/auth-service",
+    "burguer-app/order-service",
+    "burguer-app/product-service",
+    "burguer-app/user-service",
+]
+
+[project]
+name = "python-pytest"
+version = "0.1.0"
+```
+
+Cada serviço tem seu próprio `pyproject.toml`:
+
+```toml
+# burguer-app/auth-service/pyproject.toml
+[project]
+name = "auth-service"
+dependencies = [
+    "Flask>=3.1.1",
+    "pymongo>=4.13.2",
+    "pytest>=8.4.1",
+    "pytest-cov>=6.2.1",
+]
+```
+
+### Executando Operações no Workspace
+
+```bash
+# Sincronizar todas as dependências (executar na raiz)
+uv sync
+
+# Executar comando em um serviço específico (a partir de qualquer lugar)
+uv run -p auth-service pytest
+uv run -p order-service python app.py
+uv run -p product-service pytest --cov=.
+
+# Adicionar dependência a um serviço
+uv add -p auth-service flask-cors
+
+# Adicionar dependência a todos os serviços
+uv add requests
+
+# Gerar novo lock file
+uv lock
+```
+
+### Estrutura de Testes no Workspace
+
+```
+burguer-app/
+├── auth-service/
+│   ├── test/
+│   │   ├── conftest.py                    # Fixtures compartilhadas
+│   │   ├── test_user_model.py
+│   │   ├── test_auth_service.py
+│   │   └── test_database.py
+│   └── pytest.ini                         # Config local (opcional)
+├── order-service/
+│   └── test/
+│       ├── conftest.py
+│       └── test_order_service.py
+└── product-service/
+    └── tests/                             # Note: nome diferente
+        ├── conftest.py
+        └── test_product_model.py
+```
+
+**Dica**: Mantenha nomes consistentes (`test/` ou `tests/`) em todos os serviços para facilitar scripts de automação.
+
+### Executando Testes em Todos os Serviços
+
+```bash
+# De um serviço específico
+uv run -p auth-service pytest -v
+
+# De todos os serviços (via loop)
+# Linux/Mac:
+for service in burguer-app/*/; do 
+  uv run -p $(basename $service) pytest
+done
+
+# Windows (PowerShell):
+Get-ChildItem burguer-app -Directory | ForEach-Object { 
+  uv run -p $_.Name pytest 
+}
+```
+
+---
 
 ### O que é Pylint?
 
@@ -359,8 +598,24 @@ Pylint é uma ferramenta de análise estática que:
 
 ### Instalação
 
+Pylint deve ser adicionado ao `pyproject.toml` do serviço:
+
 ```bash
-pip install pylint
+# Adicionar pylint como dependência de desenvolvimento
+uv add --dev pylint
+
+# Sincronizar
+uv sync
+```
+
+Ou editar `pyproject.toml`:
+
+```toml
+[project]
+dependencies = [
+    # ... outras dependências
+    "pylint",
+]
 ```
 
 ### Uso Básico
@@ -1253,13 +1508,14 @@ def test_fluxo_pedidos():
 
 ## Checklist de Implementação
 
-Use este checklist para implementar testes em seu projeto:
+Use este checklist para implementar testes em seu projeto com UV:
 
 ### Preparação Inicial
-- [ ] Instalar pytest: `pip install pytest`
-- [ ] Instalar pytest-cov: `pip install pytest-cov`
-- [ ] Instalar pylint: `pip install pylint`
-- [ ] Criar diretório `test/` na raiz do projeto
+- [ ] Sincronizar dependências: `uv sync`
+- [ ] Verificar que pytest está em `pyproject.toml`
+- [ ] Verificar que pytest-cov está em `pyproject.toml`
+- [ ] Adicionar pylint se necessário: `uv add --dev pylint`
+- [ ] Criar diretório `test/` no serviço (ex: `burguer-app/auth-service/test/`)
 
 ### Configuração Centralizada
 - [ ] Criar `pytest.ini` na raiz
@@ -1292,35 +1548,63 @@ Use este checklist para implementar testes em seu projeto:
 
 ---
 
-## Comandos Essenciais
+## Comandos Essenciais com UV
 
 ```bash
-# INSTALAÇÃO
-pip install pytest pytest-cov pylint
+# SINCRONIZAÇÃO E INSTALAÇÃO
+uv sync                                    # Sincronizar todas as dependências
+uv add novo-pacote                         # Adicionar novo pacote
+uv add --dev pylint                        # Adicionar dependência de dev
+uv lock                                    # Gerar/atualizar uv.lock
 
-# EXECUÇÃO BÁSICA
-pytest                                    # Todos os testes
-pytest -v                                 # Modo verbose
-pytest -x                                 # Para no primeiro erro
-pytest -s                                 # Mostra print()
+# EXECUÇÃO BÁSICA (Workspace)
+uv run pytest                               # Todos os testes (contexto atual)
+uv run -p auth-service pytest              # Testes do auth-service
+uv run -p order-service pytest             # Testes do order-service
+uv run pytest -v                           # Modo verbose
+uv run pytest -x                           # Para no primeiro erro
+uv run pytest -s                           # Mostra print()
 
-# TESTES ESPECÍFICOS
-pytest test_user.py                       # Arquivo específico
-pytest test_user.py::test_login           # Função específica
-pytest -k "test_login"                    # Por padrão de nome
+# TESTES ESPECÍFICOS (Workspace)
+uv run -p auth-service pytest test_user.py           # Arquivo específico
+uv run -p auth-service pytest test_user.py::test_login # Função específica
+uv run pytest -k "test_login"                        # Por padrão de nome
 
 # COBERTURA
-pytest --cov=.                            # Cobertura de tudo
-pytest --cov=models --cov-report=html    # Relatório HTML
-pytest --cov=. --cov-fail-under=80       # Falha se < 80%
+uv run pytest --cov=.                               # Cobertura de tudo
+uv run pytest --cov=models --cov-report=html        # Relatório HTML
+uv run pytest --cov=. --cov-fail-under=80          # Falha se < 80%
+uv run -p auth-service pytest --cov=config          # Cobertura específica
 
 # MARCADORES
-pytest -m unit                            # Só testes unitários
-pytest -m "not integration"               # Excluir integração
+uv run pytest -m unit                               # Só testes unitários
+uv run pytest -m "not integration"                  # Excluir integração
 
 # ANÁLISE ESTÁTICA
-pylint seu_modulo.py                      # Analisar arquivo
-pylint seu_projeto/                       # Analisar diretório
+uv run pylint seu_modulo.py                        # Analisar arquivo
+uv run pylint seu_projeto/                         # Analisar diretório
+
+# EXECUTAR SCRIPTS
+uv run python burguer-app/auth-service/app.py      # Rodar serviço
+uv run -p auth-service python app.py               # Alternativa
+```
+
+### Comandos Úteis do UV
+
+```bash
+# Informações do projeto
+uv tree                                    # Mostrar árvore de dependências
+uv show                                    # Mostrar informações do projeto
+uv pip list                                # Listar pacotes instalados
+
+# Gerenciamento de ambiente
+uv venv                                    # Criar virtual env
+source .venv/bin/activate                 # Ativar (Linux/Mac)
+.venv\Scripts\activate                     # Ativar (Windows)
+
+# Atualização
+uv pip compile                             # Compilar dependências
+uv self update                             # Atualizar uv
 ```
 
 ---
